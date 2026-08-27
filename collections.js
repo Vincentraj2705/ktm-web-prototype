@@ -15,6 +15,16 @@
   let touchStartX = 0;
   let touchDeltaX = 0;
 
+  // Escapes text before it's dropped into innerHTML, so catalog data (names,
+  // descriptions, article IDs) can never be interpreted as HTML/script —
+  // defense in depth in case data.js content is ever pasted from elsewhere
+  // or later sourced from an external sheet/CMS.
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str == null ? "" : String(str);
+    return div.innerHTML;
+  }
+
   function render(list) {
     if (!list.length) {
       cardsEl.innerHTML = '<p style="grid-column:1/-1;color:var(--ink-soft);">No pieces match your search — try a different keyword or article number.</p>';
@@ -23,12 +33,12 @@
     cardsEl.innerHTML = list
       .map(
         (item) => `
-        <article class="card" tabindex="0" data-id="${item.id}">
-          <img src="${item.images[0]}" alt="${item.name}" loading="lazy">
+        <article class="card" tabindex="0" data-id="${escapeHtml(item.id)}">
+          <img src="${escapeHtml(item.images[0])}" alt="${escapeHtml(item.name)}" loading="lazy">
           <div class="card-body">
-            <span class="card-tag">${item.category}</span>
-            <div class="card-name">${item.name}</div>
-            <div class="card-id">Article ${item.id}</div>
+            <span class="card-tag">${escapeHtml(item.category)}</span>
+            <div class="card-name">${escapeHtml(item.name)}</div>
+            <div class="card-id">Article ${escapeHtml(item.id)}</div>
           </div>
         </article>`
       )
@@ -51,7 +61,7 @@
     currentItem = item;
     currentImgIndex = 0;
     showImage();
-    lbInfo.innerHTML = `<h3>${item.name}</h3><p>Article ${item.id} — ${item.description}</p>`;
+    lbInfo.innerHTML = `<h3>${escapeHtml(item.name)}</h3><p>Article ${escapeHtml(item.id)} — ${escapeHtml(item.description)}</p>`;
     lightbox.classList.remove("hidden");
     document.body.style.overflow = "hidden";
     lbClose.focus();
@@ -68,7 +78,7 @@
     const src = currentItem.images[currentImgIndex];
     const multi = currentItem.images.length > 1;
     lbImageWrap.innerHTML = `
-      <img src="${src}" alt="${currentItem.name}">
+      <img src="${escapeHtml(src)}" alt="${escapeHtml(currentItem.name)}">
       ${multi ? `<span class="lb-counter">${currentImgIndex + 1} / ${currentItem.images.length}</span>` : ""}
     `;
   }
